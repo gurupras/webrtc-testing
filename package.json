@@ -1,0 +1,43 @@
+{
+  "name": "@gurupras/configurator",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "debug:test": "node --inspect-brk ./node_modules/.bin/jest --coverage=false"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gurupras/node-configurator.git"
+  },
+  "author": "Guru Prasad Srinivasa",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gurupras/node-configurator/issues"
+  },
+  "homepage": "https://github.com/gurupras/node-configurator#readme",
+  "devDependencies": {
+    "@babel/core": "^7.10.0",
+    "@babel/preset-env": "^7.10.0",
+    "@types/jest": "^25.2.3",
+    "babel-jest": "^26.0.1",
+    "eslint": "^7.1.0",
+    "eslint-config-standard": "^14.1.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-jest": "^23.13.2",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "jest": "^26.0.1",
+    "jest-extended": "^0.11.5"
+  },
+  "dependencies": {
+    "@gurupras/deferred": "^0.1.1",
+    "auth0": "^2.25.1",
+    "deepmerge": "^4.2.2",
+    "emittery": "^0.7.0",
+    "puppeteer": "^3.1.0",
+    "randomstring": "^1.1.5"
+  }
+}
