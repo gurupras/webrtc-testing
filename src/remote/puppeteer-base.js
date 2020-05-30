@@ -291,10 +291,6 @@ async function newBrowser (opts) {
 async function newPage (browser, pageOpts, initOpts) {
   const page = await browser.newPage(pageOpts)
   await initPage(page, initOpts)
-  await page.setViewport({
-    width: 1024,
-    height: 768
-  })
   return page
 }
 

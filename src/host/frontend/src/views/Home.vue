@@ -4,8 +4,9 @@
     <div class="columns">
       <div class="column">
         <AsyncOp @click="createInstance">
-          <b-button slot-scope="{ $attrs, loading, $listeners }" v-bind="$attrs" :loading="loading" class="button is-pulled-right is-link" @click="$listeners.click">Create Instance</b-button>
+          <b-button slot-scope="{ $attrs, loading, $listeners }" v-bind="$attrs" :loading="loading" class="button is-pulled-right is-link" @click="$listeners.click" style="margin: 0 2em;">Create Instance</b-button>
         </AsyncOp>
+        <b-button class="button is-pulled-right is-link" @click="manual.showModal = true">Manually Add Instance</b-button>
       </div>
     </div>
     <div class="section" v-show="servers.length > 0">
@@ -26,6 +27,25 @@
       </div>
     </div>
   </div>
+
+  <b-modal :active.sync="manual.showModal">
+    <div class="moda-card full-flex">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Manually Add Instance</p>
+      </header>
+      <form action="">
+        <section class="modal-card-body">
+          <b-field label="Host Address" :message="manual.error" :type="{'is-danger': manual.error}">
+            <b-input type="text" v-model="manual.host" placeholder="Instance host address" required/>
+          </b-field>
+        </section>
+        <footer class="modal-card-foot">
+          <b-button class="button" @click="manual.showModal = false">Close</b-button>
+          <AsyncButton class="button is-primary" @click="addManualInstance">Add</AsyncButton>
+        </footer>
+      </form>
+    </div>
+  </b-modal>
 </div>
 </template>
 
@@ -34,12 +54,23 @@ export default {
   name: 'home',
   components: {
     AsyncOp: () => import('@/components/async-op'),
+    AsyncButton: () => import('@/components/async-button'),
     CloudInstance: () => import('@/components/cloud-instance-accordion')
   },
   data () {
     return {
       servers: [],
-      expanded: { 0: true }
+      expanded: { 0: true },
+      manual: {
+        showModal: false,
+        host: '',
+        error: ''
+      }
+    }
+  },
+  watch: {
+    'manual.host' () {
+      this.manual.error = ''
     }
   },
   methods: {
@@ -71,11 +102,24 @@ export default {
       const instance = await this.socket.signal('cloud-api:create')
       this.onServerAdded(instance)
     },
+    async addManualInstance () {
+      const { manual } = this
+      manual.error = ''
+      try {
+        await this.socket.signal('cloud-api:add', { host: manual.host })
+        manual.showModal = false
+      } catch (e) {
+        manual.error = e.message
+      }
+    },
     async destroyInstance ({ id }) {
       this.onServerRemoved({ id })
     }
   },
   async beforeMount () {
+    this.socket.on('cloud-api:add', instance => {
+      this.servers.push(instance)
+    })
     const instances = await this.socket.signal('cloud-api:list')
     this.servers.push(...instances)
   }

@@ -19,7 +19,7 @@ class DigitalOceanCloudAPI extends CloudAPI {
     const [{ ip_address: dropletIP }] = v4
 
     const instance = new CloudInstance(dropletIP, dropletInfo)
-    this.instances[dropletIP] = instance
+    super.addInstance(instance)
     return instance
   }
 
@@ -36,6 +36,7 @@ class DigitalOceanCloudAPI extends CloudAPI {
     }
     const { client } = this
     await client.destroyDroplet(instanceID)
+    super.removeInstance(instanceID)
   }
 }
 

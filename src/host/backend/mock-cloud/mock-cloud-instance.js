@@ -37,5 +37,8 @@ class MockCloudInstance {
     tabs.splice(tabs.findIndex(tab => tab.id === tabID), 1)
     delete tabsMap[tabID]
   }
+
+  async discoverTabs () {
+  }
 }
 module.exports = MockCloudInstance

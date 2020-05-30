@@ -3,6 +3,7 @@ const path = require('path')
 const http = require('http')
 const express = require('express')
 const IO = require('socket.io')
+const { nanoid } = require('nanoid')
 const Deferred = require('@gurupras/deferred')
 
 const { Logger, globalLoggers, ConsoleLogger } = require('@gurupras/log')
@@ -12,6 +13,7 @@ const log = new Logger('host:server')
 const DigitalOceanCloudAPI = require('./digitalocean')
 const MockCloudAPI = require('./mock-cloud/mock-cloud-api')
 const LocalhostAPI = require('./localhost/localhost-api')
+const CloudInstance = require('./cloud-instance')
 
 const config = require('../../../config')
 
@@ -20,12 +22,12 @@ const server = http.createServer(app)
 // const cloudAPI = new DigitalOceanCloudAPI(config.digitalocean)
 
 let cloudAPI
-if (!config.apiType) {
+if (!config.api) {
   log.warn("Please specify 'apiType' in the config. Defaulting to a mock API")
-  config.apiType = 'localhost'
+  config.api = 'localhost'
 }
 
-switch (config.apiType) {
+switch (config.api) {
   case 'localhost':
     cloudAPI = new LocalhostAPI(config.remote)
     break
@@ -39,11 +41,27 @@ switch (config.apiType) {
 
 const retrievedInstancesDeferred = new Deferred()
 
-cloudAPI.getInstances().then(() => {
-}).catch(() => {
-}).finally(() => {
+;(async () => {
+  try {
+    await cloudAPI.discoverInstances()
+    const failedInstances = []
+    for (const instance of cloudAPI.instances) {
+      try {
+        await instance.discoverTabs()
+      } catch (e) {
+        log.error('Failed to retrieve tabs of discovered instance', { host: instance.host })
+        failedInstances.push(instance.id)
+      }
+    }
+
+    for (const instanceID of failedInstances) {
+      cloudAPI.removeInstance(instanceID)
+    }
+  } catch (e) {
+    log.debug('No localhost instances discovered')
+  }
   retrievedInstancesDeferred.resolve()
-})
+})()
 
 const io = new IO(server)
 
@@ -74,6 +92,22 @@ io.on('connection', socket => {
       await cloudAPI.destroyInstance(id)
     } catch (e) {
       result.error = e.message
+    }
+    cb(result)
+  })
+
+  socket.on('cloud-api:add', async ({ host }, cb) => {
+    const result = {}
+    const instance = new CloudInstance(host, { id: nanoid() })
+    try {
+      // Make sure it works
+      await instance.discoverTabs()
+      socket.emit('cloud-api:add', instance)
+      log.info('Manually added instance', { host, id: instance.id })
+      cloudAPI.addInstance(instance)
+    } catch (e) {
+      result.error = 'Host does not seem to have a remote running'
+      log.error('Manually added instance does not have expected endpoints', { host })
     }
     cb(result)
   })

@@ -20,8 +20,7 @@ class MockCloudAPI extends CloudAPI {
     log.debug('Created instance', { id })
     const instance = new MockCloudInstance(ip, { id })
     await randomSleep(1000)
-    this.instanceMap[id] = instance
-    this.instances.push(instance)
+    super.addInstance(instance)
     return instance
   }
 
@@ -36,9 +35,7 @@ class MockCloudAPI extends CloudAPI {
       throw new Error('Must specify at least a droplet ID to destroy')
     }
     await randomSleep(1000)
-    const instanceIdx = this.instances.find(x => x.id === instanceID)
-    this.instances.splice(instanceIdx, 1)
-    delete this.instanceMap[instanceID]
+    await super.removeInstance(instanceID)
   }
 }
 

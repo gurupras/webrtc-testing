@@ -1,6 +1,9 @@
 const axios = require('axios')
 const CloudTab = require('./cloud-tab')
 
+const { Logger } = require('@gurupras/log')
+const log = new Logger('cloud-instance')
+
 class CloudInstance {
   constructor (host, info) {
     Object.assign(this, {
@@ -8,7 +11,7 @@ class CloudInstance {
       host,
       baseURL: `http://${host}`
     })
-    this.axios = axios.create({
+    this.client = axios.create({
       baseURL: this.baseURL
     })
     this.tabsMap = {}
@@ -16,8 +19,8 @@ class CloudInstance {
   }
 
   async createTab () {
-    const { axios, baseURL } = this
-    const response = await axios.post('/tab/create')
+    const { client, baseURL } = this
+    const response = await client.post('/tab/create')
     const { data: id } = response
     const tab = new CloudTab(id, baseURL)
     this.tabsMap[id] = tab
@@ -35,10 +38,26 @@ class CloudInstance {
     if (!tabID) {
       throw new Error('Must specify at least a tab ID to destroy')
     }
-    const { axios, tabs, tabsMap } = this
-    await axios.delete(`/tab/${tabID}/close`)
+    const { client, tabs, tabsMap } = this
+    await client.delete(`/tab/${tabID}/close`)
     tabs.splice(tabs.findIndex(x => x.id === tabID), 1)
     delete tabsMap[tabID]
   }
+
+  async discoverTabs () {
+    const { client, host } = this
+    try {
+      const response = await client.get('/tabs')
+      const { data: tabs } = response
+      for (const [id, tabData] of Object.entries(tabs)) {
+        const tab = new CloudTab(id, `http://${host}`, tabData)
+        this.tabs.push(tab)
+        this.tabsMap[id] = tab
+      }
+    } catch (e) {
+      log.error('Failed to get tabs for host', { host })
+    }
+  }
 }
+
 module.exports = CloudInstance
