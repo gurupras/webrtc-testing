@@ -6,7 +6,8 @@ class CloudTab extends BaseCloudTab {
   constructor (id, url, props = {}) {
     super(id)
     this.client = axios.create({
-      baseURL: url
+      baseURL: url,
+      timeout: 30000
     })
     Object.assign(this, props)
   }

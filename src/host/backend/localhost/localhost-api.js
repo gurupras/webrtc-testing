@@ -9,7 +9,7 @@ const log = new Logger('localhost-api')
 class LocalhostAPI extends CloudAPI {
   constructor (config) {
     super(config)
-    const { port } = config
+    const { remote: { port } } = config
     this.host = `localhost:${port}`
     this.client = axios.create({
       baseURL: `http://${this.host}`

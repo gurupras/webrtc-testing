@@ -35,8 +35,11 @@
       </header>
       <form action="">
         <section class="modal-card-body">
+          <b-field label="ID">
+            <b-input type="text" v-model.trim="manual.id" placeholder="Instance ID"/>
+          </b-field>
           <b-field label="Host Address" :message="manual.error" :type="{'is-danger': manual.error}">
-            <b-input type="text" v-model="manual.host" placeholder="Instance host address" required/>
+            <b-input type="text" v-model.trim="manual.host" placeholder="Instance host address" required/>
           </b-field>
         </section>
         <footer class="modal-card-foot">
@@ -63,6 +66,7 @@ export default {
       expanded: { 0: true },
       manual: {
         showModal: false,
+        id: '',
         host: '',
         error: ''
       }
@@ -106,7 +110,12 @@ export default {
       const { manual } = this
       manual.error = ''
       try {
-        await this.socket.signal('cloud-api:add', { host: manual.host })
+        let { host, id } = manual
+        if (!id) {
+          const { nanoid } = await import('nanoid')
+          id = nanoid()
+        }
+        await this.socket.signal('cloud-api:add', { host, id })
         manual.showModal = false
       } catch (e) {
         manual.error = e.message
@@ -119,6 +128,10 @@ export default {
   async beforeMount () {
     this.socket.on('cloud-api:add', instance => {
       this.servers.push(instance)
+    })
+    this.socket.on('cloud-api:ready', ({ id }) => {
+      const instance = this.servers.find(x => `${x.id}` === `${id}`)
+      this.$set(instance, 'ready', true)
     })
     const instances = await this.socket.signal('cloud-api:list')
     this.servers.push(...instances)

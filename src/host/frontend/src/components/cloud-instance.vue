@@ -4,10 +4,10 @@
   <div class="column info host-column">{{ host }}</div>
   <div class="column info num-tabs-column">{{ Object.keys(tabs).length }}</div>
   <div class="column info justify-end create-tab-column">
-    <AsyncButton @click.stop="createTab" class="is-link">Create Tab</AsyncButton>
+    <AsyncButton @click.stop="createTab" :disabled="!ready" class="is-link">Create Tab</AsyncButton>
   </div>
   <div class="column info justify-end destroy-instance-column">
-    <AsyncButton @click.stop="destroyInstance" icon-right="delete" class="is-danger is-pulled-right">Destroy Instance</AsyncButton>
+    <AsyncButton @click.stop="destroyInstance" :disabled="!ready" icon-right="delete" class="is-danger is-pulled-right">Destroy Instance</AsyncButton>
   </div>
 </div>
 </template>
@@ -23,8 +23,12 @@ export default {
       type: String,
       required: true
     },
+    ready: {
+      type: Boolean,
+      default: false
+    },
     id: {
-      type: String,
+      type: [String, Number],
       required: true
     },
     tabs: {

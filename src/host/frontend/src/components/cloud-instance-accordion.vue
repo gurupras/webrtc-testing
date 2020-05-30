@@ -4,7 +4,8 @@
     <CloudInstance v-bind="attrs" v-on="$listeners" class="card-header-title has-text-weight-normal">
       <template slot="pre-info">
         <div class="column info card-header-icon" style="max-width: 64px;">
-          <b-icon :icon="props.open ? 'menu-down' : 'menu-up'"/>
+          <div v-if="!ready" class="loader is-loading"/>
+          <b-icon v-else :icon="props.open ? 'menu-down' : 'menu-up'"/>
         </div>
       </template>
     </CloudInstance>
@@ -38,8 +39,12 @@ export default {
   },
   props: {
     id: {
-      type: String,
+      type: [String, Number],
       required: true
+    },
+    ready: {
+      type: Boolean,
+      default: false
     },
     expand: {
       type: Boolean,
@@ -60,10 +65,11 @@ export default {
       }
     },
     attrs () {
-      const { id, tabs } = this
+      const { id, ready, tabs } = this
       return {
         ...this.$attrs,
         id,
+        ready,
         tabs
       }
     }

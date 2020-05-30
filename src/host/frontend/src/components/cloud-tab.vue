@@ -45,7 +45,7 @@ export default {
   },
   props: {
     instanceId: {
-      type: String,
+      type: [String, Number],
       required: true
     },
     id: {
@@ -92,7 +92,6 @@ export default {
     },
     async joinRoom () {
       const { instanceId: instanceID, id, roomName } = this
-      debugger
       await this.socket.signal('tab:join', { instanceID, id, roomName })
       this.$emit('update:room', roomName)
     }

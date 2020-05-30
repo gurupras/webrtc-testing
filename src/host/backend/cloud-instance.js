@@ -1,3 +1,4 @@
+const deepmerge = require('deepmerge')
 const axios = require('axios')
 const CloudTab = require('./cloud-tab')
 
@@ -44,10 +45,15 @@ class CloudInstance {
     delete tabsMap[tabID]
   }
 
-  async discoverTabs () {
+  async discoverTabs (opts) {
     const { client, host } = this
+    if (!opts) {
+      opts = {}
+    }
+    const defaultOpts = { timeout: 5000 }
+    const finalOpts = deepmerge(defaultOpts, opts)
     try {
-      const response = await client.get('/tabs')
+      const response = await client.get('/tabs', finalOpts)
       const { data: tabs } = response
       for (const [id, tabData] of Object.entries(tabs)) {
         const tab = new CloudTab(id, `http://${host}`, tabData)

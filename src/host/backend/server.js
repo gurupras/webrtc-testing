@@ -29,10 +29,10 @@ if (!config.api) {
 
 switch (config.api) {
   case 'localhost':
-    cloudAPI = new LocalhostAPI(config.remote)
+    cloudAPI = new LocalhostAPI(config)
     break
   case 'digitalocean':
-    cloudAPI = new DigitalOceanCloudAPI(config.digitalocean)
+    cloudAPI = new DigitalOceanCloudAPI(config)
     break
   case 'mock': // eslint-disable-line no-fallthrough
     cloudAPI = new MockCloudAPI()
@@ -47,7 +47,7 @@ const retrievedInstancesDeferred = new Deferred()
     const failedInstances = []
     for (const instance of cloudAPI.instances) {
       try {
-        await instance.discoverTabs()
+        await isInstanceReady(instance)
       } catch (e) {
         log.error('Failed to retrieve tabs of discovered instance', { host: instance.host })
         failedInstances.push(instance.id)
@@ -63,7 +63,29 @@ const retrievedInstancesDeferred = new Deferred()
   retrievedInstancesDeferred.resolve()
 })()
 
-const io = new IO(server)
+const io = new IO(server, {
+  timeout: 120000
+})
+
+async function isInstanceReady (instance) {
+  await instance.discoverTabs()
+  instance.ready = true
+}
+function checkIfInstanceIsReady (instance, socket) {
+  // Wait until we can connect to this instance and then signal this to the client
+  const fn = async () => {
+    const { host, id } = instance
+    try {
+      log.debug('Checking if instance is ready ...', { host, id })
+      await isInstanceReady(instance)
+      log.debug('Instance ready', { host, id })
+      socket.emit('cloud-api:ready', instance)
+    } catch (e) {
+      setTimeout(fn, 1000)
+    }
+  }
+  setTimeout(fn, 1000)
+}
 
 io.on('connection', socket => {
   socket.on('cloud-api:list', async (_, cb) => {
@@ -71,11 +93,16 @@ io.on('connection', socket => {
     cb(cloudAPI.instances)
   })
 
+  socket.on('disconnect', () => {
+    log.debug('Socket disconnected')
+  })
+
   socket.on('cloud-api:create', async (_, cb) => {
     let result
     try {
       const instance = await cloudAPI.createInstance()
       result = instance
+      checkIfInstanceIsReady(instance, socket)
     } catch (e) {
       result = { error: e.message }
     }
@@ -96,12 +123,12 @@ io.on('connection', socket => {
     cb(result)
   })
 
-  socket.on('cloud-api:add', async ({ host }, cb) => {
+  socket.on('cloud-api:add', async ({ host, id = nanoid() }, cb) => {
     const result = {}
-    const instance = new CloudInstance(host, { id: nanoid() })
+    const instance = new CloudInstance(host, { id })
     try {
       // Make sure it works
-      await instance.discoverTabs()
+      await isInstanceReady(instance)
       socket.emit('cloud-api:add', instance)
       log.info('Manually added instance', { host, id: instance.id })
       cloudAPI.addInstance(instance)
