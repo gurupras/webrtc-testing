@@ -139,6 +139,15 @@ io.on('connection', socket => {
     cb(result)
   })
 
+  socket.on('instance:sync', async ({ host, id }, cb) => {
+    const { instanceMap: { [id]: oldInstance } } = cloudAPI
+    const instance = new CloudInstance(host, { id })
+    await isInstanceReady(instance)
+    cloudAPI.removeInstance(oldInstance)
+    cloudAPI.addInstance(instance)
+    cb(instance)
+  })
+
   socket.on('tab:create', async ({ id }, cb) => {
     const { instanceMap: { [id]: instance } } = cloudAPI
     const tab = await instance.createTab()

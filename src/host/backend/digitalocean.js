@@ -38,7 +38,11 @@ class DigitalOceanCloudAPI extends CloudAPI {
       throw new Error('Must specify at least a droplet ID to destroy')
     }
     const { client } = this
-    await client.destroyDroplet(instanceID)
+    try {
+      // FIXME: do-wrapper currently throws an exception on destroy. Until this is fixed, we squelch the exception
+      await client.destroyDroplet(instanceID)
+    } catch (e) {
+    }
     super.removeInstance(instanceID)
   }
 }

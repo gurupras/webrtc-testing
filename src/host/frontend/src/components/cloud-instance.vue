@@ -1,6 +1,9 @@
 <template>
 <div class="columns cloud-info-container">
   <slot name="pre-info"></slot>
+  <div class="column info resync-column">
+    <AsyncButton class="button is-pulled-right is-success" icon-right="sync" @click="syncInstance">Re-sync</AsyncButton>
+  </div>
   <div class="column info host-column">{{ host }}</div>
   <div class="column info num-tabs-column">{{ Object.keys(tabs).length }}</div>
   <div class="column info justify-end create-tab-column">
@@ -41,11 +44,19 @@ export default {
       const { id, tabs } = this
       const tab = await this.socket.signal('tab:create', { id })
       tabs.unshift(tab)
+      return tab
     },
     async destroyInstance () {
       const { id } = this
       await this.socket.signal('cloud-api:destroy', id)
       this.$emit('destroy-instance', { id })
+    },
+    async syncInstance () {
+      const { tabs, host, id } = this
+      const instance = await this.socket.signal('instance:sync', { host, id })
+      const { tabs: newTabs } = instance
+      tabs.splice(0, tabs.length)
+      tabs.push(...newTabs)
     }
   }
 }

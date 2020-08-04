@@ -10,7 +10,8 @@ class CloudInstance {
     Object.assign(this, {
       ...info,
       host,
-      baseURL: `http://${host}`
+      baseURL: `http://${host}`,
+      timeout: 60000
     })
     this.client = axios.create({
       baseURL: this.baseURL

@@ -13,6 +13,7 @@
       <div class="container">
         <div class="columns has-text-weight-bold" style="padding-left: 12px;">
           <div class="column" style="max-width: 64px;"></div>
+          <div class="column"></div>
           <div class="column">IP Address</div>
           <div class="column"># Tabs</div>
           <div class="column"></div>
@@ -126,15 +127,15 @@ export default {
     }
   },
   async beforeMount () {
-    this.socket.on('cloud-api:add', instance => {
-      this.servers.push(instance)
-    })
+    this.socket.on('cloud-api:add', this.onServerAdded)
     this.socket.on('cloud-api:ready', ({ id }) => {
       const instance = this.servers.find(x => `${x.id}` === `${id}`)
       this.$set(instance, 'ready', true)
     })
     const instances = await this.socket.signal('cloud-api:list')
-    this.servers.push(...instances)
+    for (const instance of instances) {
+      this.onServerAdded(instance)
+    }
   }
 }
 </script>

@@ -1,10 +1,19 @@
 <script>
 export default {
   props: {
+    busy: {
+      type: Boolean,
+      default: false
+    }
   },
   data () {
     return {
-      loading: false
+      processing: false
+    }
+  },
+  computed: {
+    loading () {
+      return this.busy || this.processing
     }
   },
   methods: {
@@ -13,7 +22,7 @@ export default {
       if (!listener) {
         return
       }
-      this.loading = true
+      this.processing = true
       try {
         const result = listener(...args)
         if (result && result.toString() === '[object Promise]') {
@@ -22,21 +31,21 @@ export default {
       } catch (e) {
         console.error(e)
       } finally {
-        this.loading = false
+        this.processing = false
       }
     }
   },
   render () {
-    const { $listeners } = this
+    const { $listeners, loading } = this
     const wrappedListeners = {}
     for (const evt of Object.keys($listeners)) {
       wrappedListeners[evt] = e => this.performOperation(evt, e)
     }
     return this.$scopedSlots.default({
-      loading: this.loading,
+      loading,
       $attrs: {
         ...this.$attrs,
-        disabled: this.loading
+        disabled: loading
       },
       $listeners: wrappedListeners
     })

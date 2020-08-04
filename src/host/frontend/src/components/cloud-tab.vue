@@ -2,7 +2,7 @@
 <div class="columns">
   <div class="column is-flex">
     <b-field style="flex: 0.75">
-      <AsyncOp @process="joinRoom">
+      <AsyncOp @process="joinRoom(roomName)" :busy="loading">
         <div slot-scope="{ loading, $listeners }">
           <b-input v-if="!room" v-model.trim="roomName" :disabled="loading" :loading="loading" @keyup.enter.native="$listeners.process"></b-input>
           <b-button v-else disabled>{{ room }}</b-button>
@@ -10,12 +10,17 @@
       </AsyncOp>
     </b-field>
   </div>
+  <div class="column" style="margin-left: -32px;">
+    <a class="button" v-show="!loading" @click="$emit('clone-tab')">
+      <b-icon icon="content-copy"/>
+    </a>
+  </div>
   <div class="column">
     <div class="field">
       <AsyncOp @input="toggleWebcam">
         <div slot-scope="{ loading, $listeners }">
           <!-- <div v-if="loading" class="loader is-loading"></div> -->
-          <b-switch :value="webcam" :disabled="loading" v-on="$listeners" :class="{'is-loading loader': loading}"/>
+          <b-switch :value="webcam" :disabled="loading || !room" v-on="$listeners" :class="{'is-loading loader': loading}"/>
         </div>
       </AsyncOp>
     </div>
@@ -25,7 +30,7 @@
       <AsyncOp @input="toggleMic">
         <div slot-scope="{ loading, $listeners }">
           <!-- <div v-if="loading" class="loader is-loading"></div> -->
-          <b-switch :value="mic" :disabled="loading" v-on="$listeners" :class="{'is-loading loader': loading}"/>
+          <b-switch :value="mic" :disabled="loading || !room" v-on="$listeners" :class="{'is-loading loader': loading}"/>
         </div>
       </AsyncOp>
     </div>
@@ -47,6 +52,10 @@ export default {
     instanceId: {
       type: [String, Number],
       required: true
+    },
+    loading: {
+      type: Boolean,
+      default: false
     },
     id: {
       type: String,
@@ -90,8 +99,8 @@ export default {
     async toggleMic (e) {
       return this.toggleDevice('mic', !this.mic)
     },
-    async joinRoom () {
-      const { instanceId: instanceID, id, roomName } = this
+    async joinRoom (roomName) {
+      const { instanceId: instanceID, id } = this
       await this.socket.signal('tab:join', { instanceID, id, roomName })
       this.$emit('update:room', roomName)
     }

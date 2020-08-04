@@ -1,7 +1,7 @@
 <template>
 <b-collapse class="card" animation="slide" :open.sync="open">
   <div slot="trigger" slot-scope="props" class="card-header" role="button">
-    <CloudInstance v-bind="attrs" v-on="$listeners" class="card-header-title has-text-weight-normal">
+    <CloudInstance v-bind="attrs" v-on="$listeners" class="card-header-title has-text-weight-normal" ref="instance">
       <template slot="pre-info">
         <div class="column info card-header-icon" style="max-width: 64px;">
           <div v-if="!ready" class="loader is-loading"/>
@@ -16,13 +16,14 @@
         <li class="list-item">
           <div class="columns is-flex has-text-weight-bold">
             <div class="column info">Room</div>
+            <div class="column info" style="margin-left: 32px"></div>
             <div class="column info">Webcam</div>
             <div class="column info">Mic</div>
             <div class="column info"></div>
           </div>
         </li>
         <li class="list-item is-hoverable" v-for="(tab, index) in tabs" :key="tab.id">
-          <CloudTab :instance-id="id" :id="tab.id" :room.sync="tab.room" :webcam.sync="tab.webcam" :mic.sync="tab.mic" @close-tab="tabs.splice(index, 1)"/>
+          <CloudTab :instance-id="id" :id="tab.id" :room.sync="tab.room" :webcam.sync="tab.webcam" :loading="tab.loading" :mic.sync="tab.mic" @close-tab="tabs.splice(index, 1)" ref="tabs" @clone-tab="cloneTab(tab)"/>
         </li>
       </ul>
     </div>
@@ -80,6 +81,17 @@ export default {
     }
   },
   methods: {
+    async cloneTab (tab) {
+      const { $refs: { instance } } = this
+      const newTab = await instance.createTab()
+      this.$set(newTab, 'loading', true)
+      await this.$nextTick()
+      const newTabComponent = this.$refs.tabs.find(ref => ref.id === newTab.id)
+      await newTabComponent.joinRoom(tab.room)
+      await newTabComponent.toggleDevice('webcam', tab.webcam)
+      await newTabComponent.toggleDevice('mic', tab.mic)
+      newTab.loading = false
+    }
   }
 }
 </script>
