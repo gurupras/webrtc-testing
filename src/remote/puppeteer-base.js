@@ -132,14 +132,19 @@ async function loadRoomPageWithToken (page, roomName, token) {
     sessionStorage.setItem('auth0-accessToken', token)
   }, token)
   await page.goto(roomPageUrl(roomName))
-  await page.waitForFunction('app && app.$store.getters.isRoom')
+  await waitForRoomReady(page)
+}
+
+async function waitForRoomReady (page) {
+  await page.waitForFunction('app && app.$store.getters.isRoom && app.$store.getters.webRTCReady')
+  await page.click('.webcam-help-button')
 }
 
 async function loadRoomPage (page, userData, roomName) {
   await page.goto(roomPageUrl(roomName))
   await loadTestFunctions(page)
   await login(page, userData)
-  await page.waitForFunction('app && app.$store.getters.isRoom')
+  await waitForRoomReady(page)
 }
 
 async function toggleWebcam (page, getState = false) {
