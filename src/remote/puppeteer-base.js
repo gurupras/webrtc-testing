@@ -1,9 +1,8 @@
 const puppeteer = require('puppeteer')
 const Emittery = require('emittery')
 const deepmerge = require('deepmerge')
-
+const axios = require('axios')
 const randomstring = require('randomstring')
-const { AuthenticationClient } = require('auth0')
 
 var PROTOCOL = 'https:'
 var HOST = 'video.twoseven.xyz'
@@ -46,15 +45,9 @@ async function logout (page, auth0) {
 }
 
 async function getAccessToken (auth0, userData) {
-  const authClient = new AuthenticationClient({
-    domain: auth0.domain,
-    client_id: auth0.client_id,
-    client_secret: auth0.client_secret,
-    clientId: auth0.client_id,
-    clientSecret: auth0.client_secret
-  })
-  const tokens = await authClient.passwordGrant(userData)
-  return tokens.access_token
+  const response = await axios.post(`${PROTOCOL}//${HOST}/api/login/login`, userData)
+  const { data: { access_token: token } } = response
+  return token
 }
 
 async function login (page, userData) {
@@ -64,15 +57,15 @@ async function login (page, userData) {
         reject(new Error('Failed to login'))
       }, 20000)
 
-      window.appBus.$once('auth0-profile-available', (profile) => {
-        console.log('Received auth0-profile-available event')
+      window.appBus.$once('auth-profile-available', (profile) => {
+        console.log('Received auth-profile-available event')
         clearTimeout(timeout)
         resolve(profile)
       })
-      window.getAuth0Lock().on('authenticated', function (obj) {
-        console.log('Auth0 authenticated: ' + obj.idToken)
+      window.getAuthLock().on('authenticated', function (obj) {
+        console.log('Authenticated: ' + obj.idToken)
       })
-      window.getAuth0Lock().on('authorization_error', function (err) {
+      window.getAuthLock().on('authorization_error', function (err) {
         clearTimeout(timeout)
         reject(err)
       })
@@ -115,9 +108,12 @@ async function waitForLandingPage (page) {
 }
 async function loadLandingPage (page) {
   await page.goto(landingPageUrl())
-  await page.waitForFunction('app.$store.getters.auth0Lock !== undefined')
+  await page.waitForFunction('app.$store.getters.authLock !== undefined')
   await loadTestFunctions(page)
-  return waitForLandingPage(page)
+  const hasToken = await page.evaluate(() => localStorage['auth-accessToken'])
+  if (!hasToken) {
+    return waitForLandingPage(page)
+  }
 }
 
 async function loadHomePage (page, userData) {
@@ -129,7 +125,7 @@ async function loadHomePage (page, userData) {
 async function loadRoomPageWithToken (page, roomName, token) {
   await loadLandingPage(page)
   await page.evaluate((token) => {
-    sessionStorage.setItem('auth0-accessToken', token)
+    localStorage.setItem('auth-accessToken', token)
   }, token)
   await page.goto(roomPageUrl(roomName))
   await waitForRoomReady(page)
