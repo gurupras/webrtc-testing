@@ -167,6 +167,13 @@ io.on('connection', socket => {
     cb()
   })
 
+  socket.on('tab:stats', async ({ instanceID, id: tabID }, cb) => {
+    const { instanceMap: { [instanceID]: instance } } = cloudAPI
+    const { tabsMap: { [tabID]: tab } } = instance
+    const stats = await tab.getStats()
+    cb(stats)
+  })
+
   const devices = ['webcam', 'mic']
   const operations = ['start', 'stop', 'toggle']
   for (const device of devices) {

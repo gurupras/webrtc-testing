@@ -90,6 +90,17 @@ app.post('/tab/:tabID/:device(webcam|mic)/:operation(start|stop|toggle)', async 
   }
 })
 
+app.get('/tab/:tabID/stats', async (req, res) => {
+  const { params: { tabID } } = req
+  const { [tabID]: tab } = tabs
+  if (!tab) {
+    return res.status(400).send(`No tab with tabID '${tabID}'`)
+  }
+  const stats = await tab.getStats()
+  // log.info('Got stats', { tabID, stats })
+  res.send(stats)
+})
+
 app.delete('/tab/:tabID/close', async (req, res) => {
   const { params: { tabID } } = req
   const { [tabID]: tab } = tabs

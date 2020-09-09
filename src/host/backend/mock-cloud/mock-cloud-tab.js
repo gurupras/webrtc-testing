@@ -27,6 +27,10 @@ class MockCloudTab extends BaseCloudTab {
     await randomSleep(1000)
     super.stopMic()
   }
+
+  async getStats () {
+    // TODO: Implement this
+  }
 }
 
 module.exports = MockCloudTab

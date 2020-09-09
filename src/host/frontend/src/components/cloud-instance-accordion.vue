@@ -19,6 +19,7 @@
             <div class="column info" style="margin-left: 32px"></div>
             <div class="column info">Webcam</div>
             <div class="column info">Mic</div>
+            <div class="column info" style="flex-grow: 2">Stats</div>
             <div class="column info"></div>
           </div>
         </li>

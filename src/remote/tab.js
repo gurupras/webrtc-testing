@@ -55,6 +55,47 @@ class Tab extends BaseCloudTab {
     this.mic = await base.toggleMic(page)
   }
 
+  async getStats () {
+    const { page, room } = this
+    if (!room) {
+      return []
+    }
+    return page.evaluate(async () => {
+      const result = []
+      try {
+        const { app: { $store: { getters: { screenWebRTC, webcamWebRTC } } } } = window
+        const data = {
+          screen: screenWebRTC,
+          webcam: webcamWebRTC
+        }
+        const stats = await Promise.all(Object.entries(data).map(async ([type, webRTC]) => {
+          try {
+            const consumers = Object.values(webRTC.mediasoupWebRTC.consumers)
+            const stats = await Promise.all(consumers.map(async consumer => {
+              const { type, streamType: kind } = consumer
+              const rtcStats = await consumer.consumer.getStats()
+              const stats = [...rtcStats]
+              return {
+                type,
+                kind,
+                stats
+              }
+            }))
+            return stats
+          } catch (e) {
+            return []
+          }
+        }))
+        for (const entries of stats) {
+          result.push(...entries)
+        }
+      } catch (e) {
+        console.error(e)
+      }
+      return result
+    })
+  }
+
   get page () {
     return pageMap.get(this)
   }

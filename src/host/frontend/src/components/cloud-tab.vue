@@ -35,6 +35,19 @@
       </AsyncOp>
     </div>
   </div>
+
+  <div class="column" style="flex-grow: 2">
+    <div class="field">
+      <AsyncOp @input="updateStats">
+        <div slot-scope="{ loading }">
+          <div :class="{'is-loading loader': loading}">
+            <Stats :stats="stats"/>
+          </div>
+        </div>
+      </AsyncOp>
+    </div>
+  </div>
+
   <div class="column justify-end close-tab-column">
     <AsyncButton @click="closeTab" icon-right="delete" class="is-danger is-pulled-right">Close Tab</AsyncButton>
   </div>
@@ -46,7 +59,8 @@ export default {
   name: 'cloud-tab',
   components: {
     AsyncOp: () => import('@/components/async-op'),
-    AsyncButton: () => import('@/components/async-button')
+    AsyncButton: () => import('@/components/async-button'),
+    Stats: () => import('@/components/stats')
   },
   props: {
     instanceId: {
@@ -76,7 +90,8 @@ export default {
   },
   data () {
     return {
-      roomName: ''
+      roomName: '',
+      stats: []
     }
   },
   methods: {
@@ -103,7 +118,18 @@ export default {
       const { instanceId: instanceID, id } = this
       await this.socket.signal('tab:join', { instanceID, id, roomName })
       this.$emit('update:room', roomName)
+    },
+    async updateStats () {
+      const { instanceId: instanceID, id } = this
+      const stats = await this.socket.signal('tab:stats', { instanceID, id })
+      this.stats = stats
     }
+  },
+  mounted () {
+    this.statsInterval = setInterval(() => this.updateStats(), 2000)
+  },
+  beforeDestroy () {
+    this.statsInterval && clearInterval(this.statsInterval)
   }
 }
 </script>

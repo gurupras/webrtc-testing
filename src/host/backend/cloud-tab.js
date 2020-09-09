@@ -42,6 +42,10 @@ class CloudTab extends BaseCloudTab {
     await this._commonRequest('/mic/stop')
     super.stopMic()
   }
+
+  async getStats () {
+    return this._commonRequest('/stats', 'get')
+  }
 }
 
 module.exports = CloudTab
