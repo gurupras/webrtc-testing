@@ -19,7 +19,6 @@
     <div class="field">
       <AsyncOp @input="toggleWebcam">
         <div slot-scope="{ loading, $listeners }">
-          <!-- <div v-if="loading" class="loader is-loading"></div> -->
           <b-switch :value="webcam" :disabled="loading || !room" v-on="$listeners" :class="{'is-loading loader': loading}"/>
         </div>
       </AsyncOp>
@@ -29,7 +28,6 @@
     <div class="field">
       <AsyncOp @input="toggleMic">
         <div slot-scope="{ loading, $listeners }">
-          <!-- <div v-if="loading" class="loader is-loading"></div> -->
           <b-switch :value="mic" :disabled="loading || !room" v-on="$listeners" :class="{'is-loading loader': loading}"/>
         </div>
       </AsyncOp>

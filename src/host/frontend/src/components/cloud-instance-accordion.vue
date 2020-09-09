@@ -89,8 +89,12 @@ export default {
       await this.$nextTick()
       const newTabComponent = this.$refs.tabs.find(ref => ref.id === newTab.id)
       await newTabComponent.joinRoom(tab.room)
-      await newTabComponent.toggleDevice('webcam', tab.webcam)
-      await newTabComponent.toggleDevice('mic', tab.mic)
+      if (tab.webcam) {
+        await newTabComponent.toggleDevice('webcam', tab.webcam)
+      }
+      if (tab.mic) {
+        await newTabComponent.toggleDevice('mic', tab.mic)
+      }
       newTab.loading = false
     }
   }
