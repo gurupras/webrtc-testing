@@ -10,21 +10,13 @@
 <script>
 import Vue from 'vue'
 import io from 'socket.io-client'
+import patchSocketIO from '@/js/patch-socket.io'
 
 export default {
   name: 'app',
   mounted () {
     const socket = io()
-    socket.signal = (evt, args) => {
-      return new Promise((resolve, reject) => {
-        socket.emit(evt, args, (result = {}) => {
-          if (result.error) {
-            return reject(new Error(result.error))
-          }
-          resolve(result)
-        })
-      })
-    }
+    patchSocketIO(socket)
     Vue.prototype.socket = socket
     this.$store.commit('socket', socket)
   }
