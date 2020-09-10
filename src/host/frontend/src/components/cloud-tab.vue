@@ -36,13 +36,9 @@
 
   <div class="column" style="flex-grow: 2">
     <div class="field">
-      <AsyncOp @input="updateStats">
-        <div slot-scope="{ loading }">
-          <div :class="{'is-loading loader': loading}">
-            <Stats :stats="stats"/>
-          </div>
-        </div>
-      </AsyncOp>
+      <Stats :stats="stats" @warn="data => $emit('warn', { id, ...data })"/>
+    </div>
+  </div>
     </div>
   </div>
 
