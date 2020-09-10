@@ -1,7 +1,7 @@
 <template>
   <div style="font-size: 0.7em;">
     <ul v-for="entry in processedStats" :key="entry.type + ':' + entry.kind">
-      <li>
+      <li :class="{'has-text-danger': entry.data.warn }">
         [{{ entry.type }}-{{ entry.kind }}] - {{ entry.data }}
       </li>
     </ul>
@@ -47,6 +47,9 @@ export default {
             if (lastTime) {
               const fps = ((newFramesDecoded - framesDecoded) / ((now - lastTime) / 1000)) | 0
               data = { fps }
+              if (fps < 15) {
+                data.warn = true
+              }
             }
             this.lastTime = now
             this.framesDecoded = newFramesDecoded
