@@ -1,0 +1,9 @@
+#!/bin/bash
+
+BRANCH=${BRANCH:="master"}
+
+git remote update
+git pull origin $BRANCH
+npm install
+
+exec node src/remote/server.js
