@@ -39,6 +39,10 @@
       <Stats :stats="stats" @warn="data => $emit('warn', { id, ...data })"/>
     </div>
   </div>
+
+  <div class="column" style="flex-grow: 2">
+    <div class="field">
+      <img :src="screenshot"/>
     </div>
   </div>
 
@@ -80,12 +84,21 @@ export default {
     mic: {
       type: Boolean,
       default: false
+    },
+    instanceSocket: {
+      type: Object
     }
   },
   data () {
     return {
       roomName: '',
-      stats: []
+      stats: [],
+      screenshot: ''
+    }
+  },
+  watch: {
+    instanceSocket (v) {
+      this.setupScreenshotTask()
     }
   },
   methods: {
@@ -117,13 +130,29 @@ export default {
       const { instanceId: instanceID, id } = this
       const stats = await this.socket.signal('tab:stats', { instanceID, id })
       this.stats = stats
+    },
+    async updateScreenshot () {
+      const { id: tabID } = this
+      const data = await this.instanceSocket.signal('screenshot', { tabID })
+      const view = new Uint8Array(data)
+      const blob = new Blob([view], { type: 'image/jpeg' })
+      this.screenshot = URL.createObjectURL(blob)
+    },
+    async reinitializeScreenshotTask () {
+      const { screenshotInterval } = this
+      screenshotInterval && clearInterval(screenshotInterval)
+      if (this.instanceSocket) {
+        this.screenshotInterval = setInterval(() => this.updateScreenshot(), 300)
+      }
     }
   },
   mounted () {
     this.statsInterval = setInterval(() => this.updateStats(), 2000)
+    this.reinitializeScreenshotTask()
   },
   beforeDestroy () {
     this.statsInterval && clearInterval(this.statsInterval)
+    this.screenshotInterval && clearInterval(this.screenshotInterval)
   }
 }
 </script>
