@@ -1,3 +1,4 @@
+const deepmerge = require('deepmerge')
 const base = require('./puppeteer-base')
 const BaseCloudTab = require('../host/backend/base-cloud-tab')
 const pageMap = new WeakMap()
@@ -94,6 +95,17 @@ class Tab extends BaseCloudTab {
       }
       return result
     })
+  }
+
+  async screenshot (opts = {}) {
+    const defaults = {
+      type: 'jpeg',
+      quality: 80,
+      encoding: 'binary'
+    }
+    const options = deepmerge(defaults, opts)
+    const { page } = this
+    return page.screenshot(options)
   }
 
   get page () {

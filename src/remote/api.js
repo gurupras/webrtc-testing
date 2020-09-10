@@ -101,6 +101,18 @@ app.get('/tab/:tabID/stats', async (req, res) => {
   res.send(stats)
 })
 
+app.get('/tab/:tabID/screenshot', async (req, res) => {
+  const { params: { tabID }, query } = req
+  const { [tabID]: tab } = tabs
+  if (!tab) {
+    return res.status(400).send(`No tab with tabID '${tabID}'`)
+  }
+
+  const data = await tab.screenshot(query)
+  res.type('application/octet-stream')
+  res.send(data)
+})
+
 app.delete('/tab/:tabID/close', async (req, res) => {
   const { params: { tabID } } = req
   const { [tabID]: tab } = tabs
@@ -112,4 +124,7 @@ app.delete('/tab/:tabID/close', async (req, res) => {
   res.send('OK')
 })
 
-module.exports = app
+module.exports = {
+  app,
+  tabs
+}
