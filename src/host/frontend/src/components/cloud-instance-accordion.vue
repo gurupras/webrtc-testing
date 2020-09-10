@@ -24,7 +24,18 @@
           </div>
         </li>
         <li class="list-item is-hoverable" v-for="(tab, index) in tabs" :key="tab.id">
-          <CloudTab :instance-id="id" :id="tab.id" :room.sync="tab.room" :webcam.sync="tab.webcam" :loading="tab.loading" :mic.sync="tab.mic" @close-tab="tabs.splice(index, 1)" ref="tabs" @clone-tab="cloneTab(tab)"/>
+          <CloudTab
+              :instance-id="id"
+              :id="tab.id"
+              :host="host"
+              :room.sync="tab.room"
+              :instance-socket="instanceSocket"
+              :webcam.sync="tab.webcam"
+              :loading="tab.loading"
+              :mic.sync="tab.mic"
+              @close-tab="tabs.splice(index, 1)"
+              ref="tabs"
+              @clone-tab="cloneTab(tab)"/>
         </li>
       </ul>
     </div>
@@ -33,6 +44,9 @@
 </template>
 
 <script>
+import io from 'socket.io-client'
+import patchSocketIO from '@/js/patch-socket.io'
+
 export default {
   name: 'cloud-instance-accordion',
   components: {
@@ -74,11 +88,19 @@ export default {
         ready,
         tabs
       }
+    },
+    host () {
+      return this.$attrs.host
     }
   },
   watch: {
     tabs () {
       this.open = true
+    }
+  },
+  data () {
+    return {
+      instanceSocket: undefined
     }
   },
   methods: {
@@ -97,6 +119,13 @@ export default {
       }
       newTab.loading = false
     }
+  },
+  mounted () {
+    const socket = io(`ws://${this.host}`, {
+      transports: ['websocket']
+    })
+    patchSocketIO(socket)
+    this.instanceSocket = socket
   }
 }
 </script>
