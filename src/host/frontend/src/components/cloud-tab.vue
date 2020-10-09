@@ -1,6 +1,6 @@
 <template>
 <div class="columns">
-  <div class="column is-flex">
+  <div class="column is-flex" style="flex-grow: 1.5;">
     <b-field style="flex: 0.75">
       <AsyncOp @process="joinRoom(roomName)" :busy="loading">
         <div slot-scope="{ loading, $listeners }">
@@ -10,11 +10,18 @@
       </AsyncOp>
     </b-field>
   </div>
-  <div class="column" style="margin-left: -32px;">
+  <div class="column" style="flex-grow: 0.75;">
     <a class="button" v-show="!loading" @click="$emit('clone-tab')">
       <b-icon icon="content-copy"/>
     </a>
   </div>
+
+  <div class="column" style="flex-grow: 0.75;">
+    <a class="button" v-show="!loading" @click="$emit('clone-tab')">
+      <b-icon icon="content-copy"/>
+    </a>
+  </div>
+
   <div class="column">
     <div class="field">
       <AsyncOp @input="toggleWebcam">
@@ -87,6 +94,9 @@ export default {
     },
     instanceSocket: {
       type: Object
+    },
+    screenshots: {
+      type: Boolean
     }
   },
   data () {
@@ -98,7 +108,10 @@ export default {
   },
   watch: {
     instanceSocket (v) {
-      this.setupScreenshotTask()
+      this.reinitializeScreenshotTask()
+    },
+    screenshots (v) {
+      this.reinitializeScreenshotTask()
     }
   },
   methods: {
@@ -132,17 +145,28 @@ export default {
       this.stats = stats
     },
     async updateScreenshot () {
-      const { id: tabID } = this
-      const data = await this.instanceSocket.signal('screenshot', { tabID })
-      const view = new Uint8Array(data)
-      const blob = new Blob([view], { type: 'image/jpeg' })
-      this.screenshot = URL.createObjectURL(blob)
+      this.$emit('task', {
+        key: 'screenshot',
+        cb: async () => {
+          const { id: tabID } = this
+          const data = await this.instanceSocket.signal('screenshot', { tabID })
+          const view = new Uint8Array(data)
+          const blob = new Blob([view], { type: 'image/jpeg' })
+          const { screenshot } = this
+          this.screenshot = URL.createObjectURL(blob)
+          if (screenshot) {
+            URL.revokeObjectURL(screenshot)
+          }
+          delete this.screenshotTimeout
+          this.reinitializeScreenshotTask()
+        }
+      })
     },
     async reinitializeScreenshotTask () {
-      const { screenshotInterval } = this
-      screenshotInterval && clearInterval(screenshotInterval)
-      if (this.instanceSocket) {
-        this.screenshotInterval = setInterval(() => this.updateScreenshot(), 300)
+      const { screenshotTimeout } = this
+      screenshotTimeout && clearTimeout(screenshotTimeout)
+      if (this.instanceSocket && this.screenshots) {
+        this.screenshotTimeout = setTimeout(() => this.updateScreenshot(), 2000)
       }
     }
   },
@@ -152,7 +176,7 @@ export default {
   },
   beforeDestroy () {
     this.statsInterval && clearInterval(this.statsInterval)
-    this.screenshotInterval && clearInterval(this.screenshotInterval)
+    this.screenshotTimeout && clearTimeout(this.screenshotTimeout)
   }
 }
 </script>

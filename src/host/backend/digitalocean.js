@@ -9,17 +9,25 @@ const log = new Logger('do-cloud-api')
 class DigitalOceanCloudAPI extends CloudAPI {
   constructor (config) {
     super(config)
-    const { digitalocean: { token, dropletConfig }, remote: { port } } = config
+    const { digitalocean: { good_cpus: cpus, token, dropletConfig }, remote: { port } } = config
+    this.cpus = cpus
     this.remotePort = port
     this.dropletConfig = dropletConfig
     this.client = new DigitalOceanAPI({ token }, log)
   }
 
   async createInstance (config = this.dropletConfig) {
-    const { remotePort } = this
-    const dropletInfo = await this.client.createDroplet(config, {})
-    const { droplet: { id, networks: { v4 } } } = dropletInfo
-    const [{ ip_address: dropletIP }] = v4
+    const { remotePort, cpus, client } = this
+
+    let promise
+    if (cpus.length > 0) {
+      promise = client.createDropletWithCPU({ cpus }, config)
+    } else {
+      promise = client.createDroplet(config)
+    }
+    const dropletInfo = await promise
+    const { droplet: { id } } = dropletInfo
+    const dropletIP = this.client.getDropletIP(dropletInfo, 'public')
 
     const instance = new CloudInstance(`${dropletIP}:${remotePort}`, { id, ...dropletInfo })
     super.addInstance(instance)

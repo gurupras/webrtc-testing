@@ -1,7 +1,7 @@
 <template>
 <b-collapse class="card" animation="slide" :open.sync="open">
   <div slot="trigger" slot-scope="props" class="card-header" role="button">
-    <CloudInstance v-bind="attrs" v-on="$listeners" class="card-header-title has-text-weight-normal" ref="instance">
+    <CloudInstance v-bind="attrs" :screenshots.sync="screenshots" v-on="$listeners" class="card-header-title has-text-weight-normal" ref="instance">
       <template slot="pre-info">
         <div class="column info card-header-icon" style="max-width: 64px;">
           <div v-if="!ready" class="loader is-loading"/>
@@ -15,8 +15,9 @@
       <ul class="list">
         <li class="list-item">
           <div class="columns is-flex has-text-weight-bold">
-            <div class="column info">Room</div>
-            <div class="column info" style="margin-left: 32px"></div>
+            <div class="column info" style="flex-grow: 1.5">Room</div>
+            <div class="column info" style="flex-grow: 0.75"></div>
+            <div class="column info" style="flex-grow: 0.75"></div>
             <div class="column info">Webcam</div>
             <div class="column info">Mic</div>
             <div class="column info" style="flex-grow: 2">Stats</div>
@@ -34,7 +35,9 @@
               :webcam.sync="tab.webcam"
               :loading="tab.loading"
               :mic.sync="tab.mic"
+              :screenshots="screenshots"
               @close-tab="tabs.splice(index, 1)"
+              @task="onTask"
               ref="tabs"
               @clone-tab="cloneTab(tab)"/>
         </li>
@@ -47,6 +50,7 @@
 <script>
 import io from 'socket.io-client'
 import patchSocketIO from '@/js/patch-socket.io'
+import TaskQueue from '@/js/task-queue'
 
 export default {
   name: 'cloud-instance-accordion',
@@ -101,7 +105,9 @@ export default {
   },
   data () {
     return {
-      instanceSocket: undefined
+      instanceSocket: undefined,
+      screenshots: false,
+      taskQueue: new TaskQueue()
     }
   },
   methods: {
@@ -119,6 +125,11 @@ export default {
         await newTabComponent.toggleDevice('mic', tab.mic)
       }
       newTab.loading = false
+    },
+    async onTask (data) {
+      const { taskQueue } = this
+      const { cb } = data
+      taskQueue.add(cb)
     }
   },
   mounted () {

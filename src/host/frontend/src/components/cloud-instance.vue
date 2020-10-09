@@ -6,6 +6,15 @@
   </div>
   <div class="column info host-column">{{ host }}</div>
   <div class="column info num-tabs-column">{{ Object.keys(tabs).length }}</div>
+  <div class="column info screenshot-column">
+    <div class="field">
+      <AsyncOp @input="checked => $emit('update:screenshots', checked)">
+        <div slot-scope="{ loading, $listeners }">
+          <b-switch :value="screenshots" :disabled="loading" v-on="$listeners" :class="{'is-loading loader': loading}"/>
+        </div>
+      </AsyncOp>
+    </div>
+  </div>
   <div class="column info justify-end create-tab-column">
     <AsyncButton @click.stop="createTab" :disabled="!ready" class="is-link">Create Tab</AsyncButton>
   </div>
@@ -19,7 +28,8 @@
 export default {
   name: 'cloud-instance',
   components: {
-    AsyncButton: () => import('@/components/async-button')
+    AsyncButton: () => import('@/components/async-button'),
+    AsyncOp: () => import('@/components/async-op')
   },
   props: {
     host: {
@@ -37,7 +47,13 @@ export default {
     tabs: {
       type: Array,
       required: true
+    },
+    screenshots: {
+      type: Boolean,
+      required: true
     }
+  },
+  computed: {
   },
   methods: {
     async createTab () {

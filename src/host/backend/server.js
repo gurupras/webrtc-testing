@@ -170,8 +170,13 @@ io.on('connection', socket => {
   socket.on('tab:stats', async ({ instanceID, id: tabID }, cb) => {
     const { instanceMap: { [instanceID]: instance } } = cloudAPI
     const { tabsMap: { [tabID]: tab } } = instance
-    const stats = await tab.getStats()
-    cb(stats)
+    try {
+      const stats = await tab.getStats()
+      cb(stats)
+    } catch (e) {
+      log.error('Failed to get tab stats', { instanceID, tabID })
+      cb(null)
+    }
   })
 
   const devices = ['webcam', 'mic']

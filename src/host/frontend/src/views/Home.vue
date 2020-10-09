@@ -16,6 +16,7 @@
           <div class="column"></div>
           <div class="column">IP Address</div>
           <div class="column"># Tabs</div>
+          <div class="column">Screenshots</div>
           <div class="column"></div>
           <div class="column"></div>
         </div>
@@ -116,11 +117,14 @@ export default {
           const { nanoid } = await import('nanoid')
           id = nanoid()
         }
-        await this.socket.signal('cloud-api:add', { host, id })
+        await this.addInstance({ host, id })
         manual.showModal = false
       } catch (e) {
         manual.error = e.message
       }
+    },
+    async addInstance ({ host, id }) {
+      await this.socket.signal('cloud-api:add', { host, id })
     },
     async destroyInstance ({ id }) {
       this.onServerRemoved({ id })
