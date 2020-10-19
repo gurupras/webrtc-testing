@@ -49,7 +49,7 @@
 
   <div class="column" style="flex-grow: 2">
     <div class="field">
-      <img :src="screenshot"/>
+      <img :src="screenshot" v-show="screenshots && screenshot"/>
     </div>
   </div>
 
