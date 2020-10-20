@@ -117,6 +117,9 @@ export default {
           const { nanoid } = await import('nanoid')
           id = nanoid()
         }
+        if (!host.includes(':')) {
+          host += ':7482'
+        }
         await this.addInstance({ host, id })
         manual.showModal = false
       } catch (e) {

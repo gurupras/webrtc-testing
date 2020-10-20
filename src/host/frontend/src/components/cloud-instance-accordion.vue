@@ -15,9 +15,9 @@
       <ul class="list">
         <li class="list-item">
           <div class="columns is-flex has-text-weight-bold">
-            <div class="column info" style="flex-grow: 1.5">Room</div>
-            <div class="column info" style="flex-grow: 0.75"></div>
-            <div class="column info" style="flex-grow: 0.75"></div>
+            <div class="column info" style="flex-grow: 1.2">Room</div>
+            <div class="column info" style="flex-grow: 0.5"></div>
+            <div class="column info" style="flex-grow: 0.5"></div>
             <div class="column info">Webcam</div>
             <div class="column info">Mic</div>
             <div class="column info" style="flex-grow: 2">Stats</div>

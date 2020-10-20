@@ -1,6 +1,6 @@
 <template>
 <div class="columns">
-  <div class="column is-flex" style="flex-grow: 1.5;">
+  <div class="column is-flex" style="flex-grow: 1.2;">
     <b-field style="flex: 0.75">
       <AsyncOp @process="joinRoom(roomName)" :busy="loading">
         <div slot-scope="{ loading, $listeners }">
@@ -10,13 +10,13 @@
       </AsyncOp>
     </b-field>
   </div>
-  <div class="column" style="flex-grow: 0.75;">
+  <div class="column" style="flex-grow: 0.5;">
     <a class="button" v-show="!loading" @click="$emit('clone-tab')">
       <b-icon icon="content-copy"/>
     </a>
   </div>
 
-  <div class="column" style="flex-grow: 0.75;">
+  <div class="column" style="flex-grow: 0.5;">
     <a class="button" v-show="!loading" @click="$emit('clone-tab')">
       <b-icon icon="content-copy"/>
     </a>
