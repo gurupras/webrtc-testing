@@ -145,7 +145,7 @@ async function loadRoomPage (page, userData, roomName) {
 
 async function toggleWebcam (page, getState = false) {
   await page.bringToFront()
-  await page.click('.webcam-toggle-container a[data-tag="toggle-webcam"] > i')
+  await page.click('.webcam-toggle-container button[data-tag="toggle-webcam"]')
   await sleep(1000)
   if (getState) {
     return getWebcamState(page)
@@ -154,7 +154,7 @@ async function toggleWebcam (page, getState = false) {
 
 async function toggleMic (page, getState = false) {
   await page.bringToFront()
-  await page.click('.webcam-toggle-container a[data-tag="toggle-mic"] > i')
+  await page.click('.webcam-toggle-container button[data-tag="toggle-mic"]')
   await sleep(1000)
   if (getState) {
     return getMicState(page)
